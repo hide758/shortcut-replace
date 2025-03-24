@@ -37,6 +37,14 @@ if __name__ == '__main__' :
         print("search shortcut files...")
         report = []
         LinkList = list(targetdir.glob("**/*.lnk"))
+
+        # confirm convert
+        print(f"{len(LinkList)} shortcut files found.")
+        print("ショートカットを変換しますか？(y/n)")
+        if input() != "y":
+            print("変換を中止しました。")
+            exit(0)
+            
         for cnt, shortcutpath in enumerate(LinkList, 1):
             print(f"\n[{cnt:3d} / {len(LinkList):3d}] inspect {shortcutpath}")
             try:
