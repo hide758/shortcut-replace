@@ -51,52 +51,52 @@ if __name__ == '__main__' :
                 # create shortcut object
                 shortcut = shell.CreateShortCut(str(shortcutpath))
 
+                TargetPath = shortcut.TargetPath
+                WorkPath = shortcut.WorkingDirectory
+
+                rep = {
+                    "Convert" : False,
+                    "LinkPath" : str(shortcutpath),
+                    "BeforeTargetPath" : TargetPath,
+                    "BeforeWorkPath" : WorkPath,
+                    "AfterTargetPath" : None,
+                    "AfterWorkPath" : None,
+                }
+
+                
+                # target path
+                if re.search(re.escape(src_str), TargetPath, flags=re.IGNORECASE):
+                    # convert path
+                    renew_target = str(Path(re.sub(re.escape(src_str), lambda m : dst_str, TargetPath, flags=re.IGNORECASE)))
+
+                    # replace link path
+                    shortcut.TargetPath = renew_target
+                    rep["AfterTargetPath"] = renew_target
+
+                # work path
+                if re.search(re.escape(src_str), WorkPath, flags=re.IGNORECASE):
+                    # convert path
+                    renew_work = str(Path(re.sub(re.escape(src_str), lambda m : dst_str, WorkPath, flags=re.IGNORECASE)))
+
+                    # replace work path
+                    shortcut.WorkingDirectory = renew_work
+                    rep["AfterWorkPath"] = renew_work
+
+                # save shortcut
+                if rep["AfterTargetPath"] != None or rep["AfterWorkPath"] != None:
+                    print("  ==> convert")
+                    rep["Convert"] = True
+
+                    # save shortcut
+                    if vars(args)["dry_run"] == False:
+                        shortcut.Save()
+
+                # add report
+                report.append(rep)
+
             except Exception as e:
                 print(f"  {e.args[1]}\n  {hex(e.args[0] & 0xffffffff)}")
                 continue
-
-            TargetPath = shortcut.TargetPath
-            WorkPath = shortcut.WorkingDirectory
-
-            rep = {
-                "Convert" : False,
-                "LinkPath" : str(shortcutpath),
-                "BeforeTargetPath" : TargetPath,
-                "BeforeWorkPath" : WorkPath,
-                "AfterTargetPath" : None,
-                "AfterWorkPath" : None,
-            }
-
-            
-            # target path
-            if re.search(re.escape(src_str), TargetPath, flags=re.IGNORECASE):
-                # convert path
-                renew_target = str(Path(re.sub(re.escape(src_str), lambda m : dst_str, TargetPath, flags=re.IGNORECASE)))
-
-                # replace link path
-                shortcut.TargetPath = renew_target
-                rep["AfterTargetPath"] = renew_target
-
-            # work path
-            if re.search(re.escape(src_str), WorkPath, flags=re.IGNORECASE):
-                # convert path
-                renew_work = str(Path(re.sub(re.escape(src_str), lambda m : dst_str, WorkPath, flags=re.IGNORECASE)))
-
-                # replace work path
-                shortcut.WorkingDirectory = renew_work
-                rep["AfterWorkPath"] = renew_work
-
-            # save shortcut
-            if rep["AfterTargetPath"] != None or rep["AfterWorkPath"] != None:
-                print("  ==> convert")
-                rep["Convert"] = True
-
-                # save shortcut
-                if vars(args)["dry_run"] == False:
-                    shortcut.Save()
-
-            # add report
-            report.append(rep)
 
         
         # export report.csv
