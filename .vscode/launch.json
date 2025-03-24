@@ -7,7 +7,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
-            "args": ["",]
+            "args": ["\\\\meies039\\meies056_kuseigi\\社外秘_駆制技OA\\01_駆動SW\\010_開発業務\\016_評価報告書管理\\016_1_サーボ_主軸", "--dry-run"]
 //            "args": ["\\\\mei660\\Dsi\\SV_NC", "\\\\mei660\\NC\\NC_NCDrive\\", "\\\\meies191\\nckudosw\\一般_個人\\21_加藤(秀)\\業務", "--dry-run"]
 //            "args": ["\\04_50 post-e", "\\04_50 MDS-Ｆ□シリーズ\\", "\\\\meies191\\nckudosw\\一般_個人\\21_加藤(秀)\\業務\\20241218_カバレッジ", "--dry-run"]
 }

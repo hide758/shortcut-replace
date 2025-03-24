@@ -1,11 +1,19 @@
+"""ショートカット変換スクリプト
+Windowsのショートカットのリンク先を変更するスクリプトです。
+指定したフォルダ以下のショートカットファイル(*.lnk)を探し、リンク先のパスに指定した文字列が含まれている場合、指定した文字列を別の文字列に置換します。
+
+Useage:
+    python main.py --original-path-string "置換前の文字列" --replace-path-string "置換後の文字列" "ショートカットを探すフォルダ" [--dry-run]
+"""
+
 from pathlib import Path
 import argparse
 import re
 import csv
 import win32com.client 
 
-default_original_path = "\\mei660/Dsi"
-default_replace_path = "\\mei660/NC"
+default_original_path = "\\\\mei660\\Dsi\\SV_NC"
+default_replace_path = "\\\\mei660\\NC\\NC_NCDrive\\"
 
 if __name__ == '__main__' :
     try:
@@ -29,21 +37,28 @@ if __name__ == '__main__' :
         print("search shortcut files...")
         report = []
         LinkList = list(targetdir.glob("**/*.lnk"))
-        for cnt, shortcut in enumerate(LinkList, 1):
-            # create shortcut object
-            shortcut = shell.CreateShortCut(str(shortcut))
+        for cnt, shortcutpath in enumerate(LinkList, 1):
+            print(f"\n[{cnt:3d} / {len(LinkList):3d}] inspect {shortcutpath}")
+            try:
+                # create shortcut object
+                shortcut = shell.CreateShortCut(str(shortcutpath))
+
+            except Exception as e:
+                print(f"  {e.args[1]}\n  {hex(e.args[0] & 0xffffffff)}")
+                continue
+
             TargetPath = shortcut.TargetPath
             WorkPath = shortcut.WorkingDirectory
 
             rep = {
-                "LinkPath" : str(shortcut),
+                "Convert" : False,
+                "LinkPath" : str(shortcutpath),
                 "BeforeTargetPath" : TargetPath,
                 "BeforeWorkPath" : WorkPath,
                 "AfterTargetPath" : None,
                 "AfterWorkPath" : None,
             }
 
-            print(f"[{cnt:3d} / {len(LinkList):3d}] inspect {rep['LinkPath']}")
             
             # target path
             if re.search(re.escape(src_str), TargetPath, flags=re.IGNORECASE):
@@ -63,24 +78,28 @@ if __name__ == '__main__' :
                 shortcut.WorkingDirectory = renew_work
                 rep["AfterWorkPath"] = renew_work
 
-            # add report
+            # save shortcut
             if rep["AfterTargetPath"] != None or rep["AfterWorkPath"] != None:
                 print("  ==> convert")
-                report.append(rep)
+                rep["Convert"] = True
 
                 # save shortcut
                 if vars(args)["dry_run"] == False:
                     shortcut.Save()
 
+            # add report
+            report.append(rep)
+
         
         # export report.csv
-        header = ['No.', 'ショートカット', '変換前 リンク先', '変換前 作業フォルダー', '変換後 リンク先', '変換後 作業フォルダー']
-        with open('report.csv', 'w', newline='') as f:
+        header = ['No.', '変換', 'ショートカット', '変換前 リンク先', '変換前 作業フォルダー', '変換後 リンク先', '変換後 作業フォルダー']
+        with open('report.csv', 'w', newline='', encoding="utf_8_sig") as f:
             writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(header)
             for no, row in enumerate(report, 1):
                 writer.writerow([
                     no,
+                    "" if row["Convert"] == False else "✓",
                     row["LinkPath"],
                     row["BeforeTargetPath"],
                     row["BeforeWorkPath"],
